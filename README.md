@@ -1,8 +1,6 @@
 # Web Engineering 2016-2017 / UrlShortener
 
-[![Build Status](https://travis-ci.org/UNIZAR-30246-WebEngineering/UrlShortener.svg?branch=master)](https://travis-ci.org/UNIZAR-30246-WebEngineering/UrlShortener)
-
-This is the shared repository for the project developed in this course. Go to the [wiki](../../wiki) to start your project.
+[![Build Status](https://travis-ci.org/SureSRM/UrlShortener.svg?branch=master)](https://travis-ci.org/SureSRM/UrlShortener)
 
 ## Projects
 
@@ -11,4 +9,8 @@ This is the shared repository for the project developed in this course. Go to th
 
 ## Teams
 
-To be completed.
+Username | NIA
+---------|----------
+Sergio Martín Segura | 622612
+Alvaro Barrios Gil | 666179
+Santiago Peralta Martinez | 647973
