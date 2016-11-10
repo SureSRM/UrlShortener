@@ -1,4 +1,3 @@
 include ":common"
 include ":demo"
-include ":eightchar"
 include ":team"
