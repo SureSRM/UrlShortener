@@ -6,6 +6,7 @@ eclipse {
 }
 
 dependencies {
+    compile 'org.springframework.boot:spring-boot-starter-actuator:1.4.0.RELEASE'
     compile 'org.springframework.boot:spring-boot-starter-web:1.4.0.RELEASE'
     compile 'org.springframework.boot:spring-boot-starter-jdbc:1.4.0.RELEASE'
     compile 'org.springframework.hateoas:spring-hateoas:0.20.0.RELEASE'

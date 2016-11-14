@@ -21,6 +21,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import urlshortener.common.domain.Click;
+import urlshortener.common.domain.RankPosition;
 
 
 @Repository
@@ -36,6 +37,13 @@ public class ClickRepositoryImpl implements ClickRepository {
 					rs.getDate("created"), rs.getString("referrer"),
 					rs.getString("browser"), rs.getString("platform"),
 					rs.getString("ip"), rs.getString("country"));
+		}
+	};
+
+	private static final RowMapper<RankPosition> rankMapper = new RowMapper<RankPosition>() {
+		@Override
+		public RankPosition mapRow(ResultSet rs, int rowNum) throws SQLException {
+			return new RankPosition( rs.getInt("POSITION"), rs.getString("HASH"), rs.getLong("COUNT_ACCESS"));
 		}
 	};
 
@@ -138,6 +146,18 @@ public class ClickRepositoryImpl implements ClickRepository {
 			log.debug("When counting", e);
 		}
 		return -1L;
+	}
+
+	@Override
+	public List<RankPosition> listTop(int top){
+		try {
+			return jdbc.query("SELECT ROWNUM() AS POSITION, HASH, COUNT(HASH) AS COUNT_ACCESS FROM CLICK GROUP BY HASH " +
+							"ORDER BY COUNT_ACCESS DESC LIMIT ?;",
+					new Object[] { top }, rankMapper);
+		} catch (Exception e) {
+			log.debug("When select top for limit " + top, e);
+			return null;
+		}
 	}
 
 	@Override

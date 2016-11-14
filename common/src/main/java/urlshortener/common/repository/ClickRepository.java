@@ -3,6 +3,7 @@ package urlshortener.common.repository;
 import java.util.List;
 
 import urlshortener.common.domain.Click;
+import urlshortener.common.domain.RankPosition;
 
 public interface ClickRepository {
 
@@ -19,6 +20,8 @@ public interface ClickRepository {
 	void deleteAll();
 
 	Long count();
+
+	List<RankPosition> listTop(int top);
 
 	List<Click> list(Long limit, Long offset);
 }

@@ -1,5 +1,20 @@
 $(document).ready(
     function() {
+        $.ajax('http://localhost:8080/rank', 'GET').done(
+            function(data) {
+                for (var i = 0; i < data.length; i++) {
+
+                    $("#rank").append(
+                        "<div class='rank-position'> <p> Position " + i + ": <a href='http://localhost:8080/"
+                        + data[i].hashed
+                        + "'>"
+                        + data[i].hashed
+                        + "</a> with "
+                        + data[i].score
+                        + " hits.</p></div>"
+                    );
+                }
+            });
         $("#shortener").submit(
             function(event) {
                 event.preventDefault();
@@ -17,7 +32,7 @@ $(document).ready(
                     },
                     error : function() {
                         $("#result").html(
-                                "<div class='alert alert-danger lead'>ERROR</div>");
+                            "<div class='alert alert-danger lead'>ERROR</div>");
                     }
                 });
             });

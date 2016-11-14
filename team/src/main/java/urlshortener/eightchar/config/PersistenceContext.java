@@ -2,6 +2,7 @@ package urlshortener.eightchar.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -11,6 +12,7 @@ import urlshortener.common.repository.ShortURLRepository;
 import urlshortener.common.repository.ShortURLRepositoryImpl;
 
 @Configuration
+@ComponentScan(basePackageClasses = { urlshortener.common.admin.CustomMetrics.class })
 public class PersistenceContext {
 
 	@Autowired
