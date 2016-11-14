@@ -22,7 +22,7 @@ public class TopRankWithLogs extends urlshortener.common.web.TopRank{
 
     @RequestMapping(value = "/rank", method = RequestMethod.GET)
     public @ResponseBody List<RankPosition> giveRank( ) {
-        logger.info("Requested rank info");
+        logger.info("Requested rank counterservices");
         return super.giveRank();
     }
 }

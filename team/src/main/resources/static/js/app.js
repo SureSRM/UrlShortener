@@ -1,16 +1,17 @@
 $(document).ready(
     function() {
-        $.ajax('http://localhost:8080/rank', 'GET').done(
+        $.ajax('http://localhost:8080/info', 'GET').done(
             function(data) {
-                for (var i = 0; i < data.length; i++) {
+                console.log(data);
+                for (var i = 0; i < data.RankList.length; i++) {
 
                     $("#rank").append(
                         "<div class='rank-position'> <p> Position " + i + ": <a href='http://localhost:8080/"
-                        + data[i].hashed
+                        + data.RankList[i].hashed
                         + "'>"
-                        + data[i].hashed
+                        + data.RankList[i].hashed
                         + "</a> with "
-                        + data[i].score
+                        + data.RankList[i].score
                         + " hits.</p></div>"
                     );
                 }

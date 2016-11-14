@@ -6,13 +6,14 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import urlshortener.common.infocontributors.RankInfoContributor;
 import urlshortener.common.repository.ClickRepository;
 import urlshortener.common.repository.ClickRepositoryImpl;
 import urlshortener.common.repository.ShortURLRepository;
 import urlshortener.common.repository.ShortURLRepositoryImpl;
 
 @Configuration
-@ComponentScan(basePackageClasses = { urlshortener.common.admin.CustomMetrics.class })
+@ComponentScan(basePackageClasses = { RankInfoContributor.class })
 public class PersistenceContext {
 
 	@Autowired

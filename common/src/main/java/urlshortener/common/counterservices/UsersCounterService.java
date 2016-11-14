@@ -1,23 +1,21 @@
-package urlshortener.common.admin;
+package urlshortener.common.counterservices;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.info.Info;
+import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.boot.actuate.metrics.CounterService;
-import org.springframework.boot.actuate.metrics.GaugeService;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.Collections;
 
 @Service
-public class CustomMetrics {
+public class UsersCounterService{
 
     private final CounterService counterService;
 
-    private final GaugeService gaugeService;
-
     @Autowired
-    public CustomMetrics(CounterService counterService, GaugeService gaugeService) {
+    public UsersCounterService(CounterService counterService) {
         this.counterService = counterService;
-        this.gaugeService = gaugeService;
     }
 
     public void incrementUsers() {

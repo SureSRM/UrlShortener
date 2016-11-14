@@ -6,7 +6,6 @@ import org.apache.commons.validator.routines.UrlValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.metrics.CounterService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +22,6 @@ import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
-import urlshortener.common.admin.CustomMetrics;
 import urlshortener.common.domain.ShortURL;
 import urlshortener.common.repository.ClickRepository;
 import urlshortener.common.repository.ShortURLRepository;
@@ -41,9 +39,6 @@ public class UrlShortenerController {
 
 	@Autowired
 	protected ClickRepository clickRepository;
-
-	@Autowired
-	protected CustomMetrics customMetrics;
 
 	@RequestMapping(value = "/{id:(?!link).*}", method = RequestMethod.GET)
 	public ResponseEntity<?> redirectTo(@PathVariable String id,
