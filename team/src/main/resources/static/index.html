@@ -39,6 +39,35 @@
 				</div>
 			</div>
 		</div>
+		<!-- Trigger/Open The Modal -->
+		<button class="btn btn-lg btn-primary" id="infoButton">Get info</button>
+		<!-- The Modal -->
+		<div id="infoModal" class="modal">
+
+			<!-- Modal content -->
+			<div class="modal-content">
+				<span class="close">x</span>
+				<div id="SystemInfo">
+					<h3>System info</h3>
+					<p id="uptime">System uptime: </p>
+					<p id="mem">System total memory: </p>
+					<p id="memused">System used memory: </p>
+					<p id="avload">Average load: </p>
+				</div>
+				<div id="URLInfo">
+					<h3>URL info</h3>
+					<p id="countshorted">Shorted URLs: </p>
+					<p id="countaccess">Redirected URLs:</p>
+					<p id="avacessperurl">Average redirections per URL: </p>
+					<p id="timelastredirection">Response time to the last redirection: </p>
+				</div>
+				<div id="UserInfo">
+					<h3>User info</h3>
+					<p id="activeusers">Active users: 0</p>
+				</div>
+			</div>
+
+		</div>
 		<div class="row">
 			<div class="col-lg-12 text-center">
 				<div class="col-sm-offset-4 col-sm-4 text-center">
