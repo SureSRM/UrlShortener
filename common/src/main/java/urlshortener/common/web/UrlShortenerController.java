@@ -1,6 +1,7 @@
 package urlshortener.common.web;
 
 import com.google.common.hash.Hashing;
+import com.google.common.util.concurrent.RateLimiter;
 
 import org.apache.commons.validator.routines.UrlValidator;
 import org.slf4j.Logger;
@@ -33,6 +34,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 @RestController
 public class UrlShortenerController {
 	private static final Logger LOG = LoggerFactory.getLogger(UrlShortenerController.class);
+	private static final RateLimiter throttler = RateLimiter.create(1.0);
 	@Autowired
 	protected ShortURLRepository shortURLRepository;
 
@@ -72,7 +74,7 @@ public class UrlShortenerController {
 											  HttpServletRequest request) {
 
 		ShortURL su = createAndSaveIfValid(url, sponsor, UUID.randomUUID().toString(), extractIP(request));
-		if (su != null) {
+		if (su != null && throttler.tryAcquire()) {
 			HttpHeaders h = new HttpHeaders();
 			h.setLocation(su.getUri());
 			// Comprueba la conexion sea 200
