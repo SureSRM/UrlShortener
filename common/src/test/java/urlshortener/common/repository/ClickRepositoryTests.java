@@ -25,8 +25,7 @@ public class ClickRepositoryTests {
 
 	@Before
 	public void setup() {
-		db = new EmbeddedDatabaseBuilder().setType(HSQL)
-				.addScript("schema-hsqldb.sql").build();
+		db = new EmbeddedDatabaseBuilder().setType(HSQL).addScript("schema-hsqldb.sql").build();
 		jdbc = new JdbcTemplate(db);
 		ShortURLRepository shortUrlRepository = new ShortURLRepositoryImpl(jdbc);
 		shortUrlRepository.save(ShortURLFixture.url1());
@@ -37,8 +36,7 @@ public class ClickRepositoryTests {
 	@Test
 	public void thatSavePersistsTheClickURL() {
 		Click click = repository.save(ClickFixture.click(ShortURLFixture.url1()));
-		assertSame(jdbc.queryForObject("select count(*) from CLICK",
-				Integer.class), 1);
+		assertSame(jdbc.queryForObject("select count(*) from CLICK", Integer.class), 1);
 		assertNotNull(click);
 		assertNotNull(click.getId());
 	}
@@ -46,8 +44,7 @@ public class ClickRepositoryTests {
 	@Test
 	public void thatErrorsInSaveReturnsNull() {
 		assertNull(repository.save(ClickFixture.click(ShortURLFixture.badUrl())));
-		assertSame(jdbc.queryForObject("select count(*) from CLICK",
-				Integer.class), 0);
+		assertSame(jdbc.queryForObject("select count(*) from CLICK", Integer.class), 0);
 	}
 
 	@Test

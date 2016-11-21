@@ -45,30 +45,25 @@ public class UrlShortenerTests {
 	}
 
 	@Test
-	public void thatRedirectToReturnsTemporaryRedirectIfKeyExists()
-			throws Exception {
+	public void thatRedirectToReturnsTemporaryRedirectIfKeyExists() throws Exception {
 		when(shortURLRepository.findByKey("someKey")).thenReturn(someUrl());
 
-		mockMvc.perform(get("/{id}", "someKey")).andDo(print())
-				.andExpect(status().isTemporaryRedirect())
+		mockMvc.perform(get("/{id}", "someKey")).andDo(print()).andExpect(status().isTemporaryRedirect())
 				.andExpect(redirectedUrl("http://example.com/"));
 	}
 
 	@Test
-	public void thatRedirecToReturnsNotFoundIdIfKeyDoesNotExist()
-			throws Exception {
+	public void thatRedirecToReturnsNotFoundIdIfKeyDoesNotExist() throws Exception {
 		when(shortURLRepository.findByKey("someKey")).thenReturn(null);
 
-		mockMvc.perform(get("/{id}", "someKey")).andDo(print())
-				.andExpect(status().isNotFound());
+		mockMvc.perform(get("/{id}", "someKey")).andDo(print()).andExpect(status().isNotFound());
 	}
 
 	@Test
 	public void thatShortenerCreatesARedirectIfTheURLisOK() throws Exception {
 		configureTransparentSave();
 
-		mockMvc.perform(post("/link").param("url", "http://example.com/"))
-				.andDo(print())
+		mockMvc.perform(post("/link").param("url", "http://example.com/")).andDo(print())
 				.andExpect(redirectedUrl("http://localhost/f684a3c4"))
 				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.hash", is("f684a3c4")))
@@ -82,8 +77,7 @@ public class UrlShortenerTests {
 		configureTransparentSave();
 
 		mockMvc.perform(
-				post("/link").param("url", "http://example.com/").param(
-						"sponsor", "http://sponsor.com/")).andDo(print())
+				post("/link").param("url", "http://example.com/").param("sponsor", "http://sponsor.com/")).andDo(print())
 				.andExpect(redirectedUrl("http://localhost/f684a3c4"))
 				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.hash", is("f684a3c4")))
@@ -96,25 +90,20 @@ public class UrlShortenerTests {
 	public void thatShortenerFailsIfTheURLisWrong() throws Exception {
 		configureTransparentSave();
 
-		mockMvc.perform(post("/link").param("url", "someKey")).andDo(print())
-				.andExpect(status().isBadRequest());
+		mockMvc.perform(post("/link").param("url", "someKey")).andDo(print()).andExpect(status().isBadRequest());
 	}
 
 	@Test
 	public void thatShortenerFailsIfTheRepositoryReturnsNull() throws Exception {
-		when(shortURLRepository.save(org.mockito.Matchers.any(ShortURL.class)))
-				.thenReturn(null);
+		when(shortURLRepository.save(org.mockito.Matchers.any(ShortURL.class))).thenReturn(null);
 
-		mockMvc.perform(post("/link").param("url", "someKey")).andDo(print())
-				.andExpect(status().isBadRequest());
+		mockMvc.perform(post("/link").param("url", "someKey")).andDo(print()).andExpect(status().isBadRequest());
 	}
 
 	private void configureTransparentSave() {
-		when(shortURLRepository.save(org.mockito.Matchers.any(ShortURL.class)))
-				.then(new Answer<ShortURL>() {
+		when(shortURLRepository.save(org.mockito.Matchers.any(ShortURL.class))).then(new Answer<ShortURL>() {
 					@Override
-					public ShortURL answer(InvocationOnMock invocation)
-							throws Throwable {
+					public ShortURL answer(InvocationOnMock invocation) throws Throwable {
 						return (ShortURL) invocation.getArguments()[0];
 					}
 				});

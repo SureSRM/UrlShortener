@@ -27,16 +27,13 @@ import urlshortener.common.domain.RankPosition;
 @Repository
 public class ClickRepositoryImpl implements ClickRepository {
 
-	private static final Logger log = LoggerFactory
-			.getLogger(ClickRepositoryImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(ClickRepositoryImpl.class);
 
 	private static final RowMapper<Click> rowMapper = new RowMapper<Click>() {
 		@Override
 		public Click mapRow(ResultSet rs, int rowNum) throws SQLException {
-			return new Click(rs.getLong("id"), rs.getString("hash"),
-					rs.getDate("created"), rs.getString("referrer"),
-					rs.getString("browser"), rs.getString("platform"),
-					rs.getString("ip"), rs.getString("country"));
+			return new Click(rs.getLong("id"), rs.getString("hash"), rs.getDate("created"), rs.getString("referrer"),
+					rs.getString("browser"), rs.getString("platform"), rs.getString("ip"), rs.getString("country"));
 		}
 	};
 
@@ -60,8 +57,7 @@ public class ClickRepositoryImpl implements ClickRepository {
 	@Override
 	public List<Click> findByHash(String hash) {
 		try {
-			return jdbc.query("SELECT * FROM click WHERE hash=?",
-					new Object[] { hash }, rowMapper);
+			return jdbc.query("SELECT * FROM click WHERE hash=?", new Object[] { hash }, rowMapper);
 		} catch (Exception e) {
 			log.debug("When select for hash " + hash, e);
 			return null;
@@ -75,12 +71,9 @@ public class ClickRepositoryImpl implements ClickRepository {
 			jdbc.update(new PreparedStatementCreator() {
 
 				@Override
-				public PreparedStatement createPreparedStatement(Connection conn)
-						throws SQLException {
-					PreparedStatement ps = conn
-							.prepareStatement(
-									"INSERT INTO CLICK VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-									Statement.RETURN_GENERATED_KEYS);
+				public PreparedStatement createPreparedStatement(Connection conn) throws SQLException {
+					PreparedStatement ps = conn.prepareStatement(
+									"INSERT INTO CLICK VALUES (?, ?, ?, ?, ?, ?, ?, ?)",Statement.RETURN_GENERATED_KEYS);
 					ps.setNull(1, Types.BIGINT);
 					ps.setString(2, cl.getHash());
 					ps.setDate(3, cl.getCreated());
@@ -92,8 +85,7 @@ public class ClickRepositoryImpl implements ClickRepository {
 					return ps;
 				}
 			}, holder);
-			new DirectFieldAccessor(cl).setPropertyValue("id", holder.getKey()
-					.longValue());
+			new DirectFieldAccessor(cl).setPropertyValue("id", holder.getKey().longValue());
 		} catch (DuplicateKeyException e) {
 			log.debug("When insert for click with id " + cl.getId(), e);
 			return cl;
@@ -110,8 +102,7 @@ public class ClickRepositoryImpl implements ClickRepository {
 		try {
 			jdbc.update(
 					"update click set hash=?, created=?, referrer=?, browser=?, platform=?, ip=?, country=? where id=?",
-					cl.getHash(), cl.getCreated(), cl.getReferrer(),
-					cl.getBrowser(), cl.getPlatform(), cl.getIp(),
+					cl.getHash(), cl.getCreated(), cl.getReferrer(), cl.getBrowser(), cl.getPlatform(), cl.getIp(),
 					cl.getCountry(), cl.getId());
 			
 		} catch (Exception e) {
@@ -140,8 +131,7 @@ public class ClickRepositoryImpl implements ClickRepository {
 	@Override
 	public Long count() {
 		try {
-			return jdbc
-					.queryForObject("select count(*) from click", Long.class);
+			return jdbc.queryForObject("select count(*) from click", Long.class);
 		} catch (Exception e) {
 			log.debug("When counting", e);
 		}
@@ -163,11 +153,9 @@ public class ClickRepositoryImpl implements ClickRepository {
 	@Override
 	public List<Click> list(Long limit, Long offset) {
 		try {
-			return jdbc.query("SELECT * FROM click LIMIT ? OFFSET ?",
-					new Object[] { limit, offset }, rowMapper);
+			return jdbc.query("SELECT * FROM click LIMIT ? OFFSET ?", new Object[] { limit, offset }, rowMapper);
 		} catch (Exception e) {
-			log.debug("When select for limit " + limit + " and offset "
-					+ offset, e);
+			log.debug("When select for limit " + limit + " and offset " + offset, e);
 			return null;
 		}
 	}
@@ -175,8 +163,7 @@ public class ClickRepositoryImpl implements ClickRepository {
 	@Override
 	public Long clicksByHash(String hash) {
 		try {
-			return jdbc
-					.queryForObject("select count(*) from click where hash = ?", new Object[]{hash}, Long.class);
+			return jdbc.queryForObject("select count(*) from click where hash = ?", new Object[]{hash}, Long.class);
 		} catch (Exception e) {
 			log.debug("When counting hash "+hash, e);
 		}

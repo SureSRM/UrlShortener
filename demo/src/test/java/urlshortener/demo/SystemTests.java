@@ -35,26 +35,29 @@ public class SystemTests {
 
 	@Test
 	public void testHome() throws Exception {
+		System.out.println("++++++++++++++++++ INICIO TEST HOME");
 		ResponseEntity<String> entity = new TestRestTemplate().getForEntity(
 				"http://localhost:" + this.port, String.class);
 		assertThat(entity.getStatusCode(), is(HttpStatus.OK));
 		//Problem with content type because it includes charset
 		//assertThat(entity.getHeaders().getContentType(), is(new MediaType("text", "html")));
 		assertThat(entity.getBody(), containsString("<title>URL"));
+		System.out.println("++++++++++++++++++ FIN TEST HOME");
 	}
 
 	@Test
 	public void testCss() throws Exception {
-		ResponseEntity<String> entity = new TestRestTemplate().getForEntity(
-				"http://localhost:" + this.port
-						+ "/webjars/bootstrap/3.3.5/css/bootstrap.min.css", String.class);
+		ResponseEntity<String> entity = new TestRestTemplate().getForEntity("http://localhost:" + this.port
+				                            + "/webjars/bootstrap/3.3.5/css/bootstrap.min.css", String.class);
 		assertThat(entity.getStatusCode(), is(HttpStatus.OK));
 		assertThat(entity.getHeaders().getContentType(), is(MediaType.valueOf("text/css")));
 		assertThat(entity.getBody(), containsString("body"));
+		System.out.println("-------------------- FINAL CSS");
 	}
 
 	@Test
 	public void testCreateLink() throws Exception {
+		System.out.println("***************** INICIO CREAR LINK");
 		ResponseEntity<String> entity = postLink("http://example.com/");
 		assertThat(entity.getStatusCode(), is(HttpStatus.CREATED));
 		assertThat(entity.getHeaders().getLocation(), is(new URI("http://localhost:"+ this.port+"/f684a3c4")));
@@ -64,14 +67,15 @@ public class SystemTests {
 		assertThat(rc.read("$.uri"), is("http://localhost:"+ this.port+"/f684a3c4"));
 		assertThat(rc.read("$.target"), is("http://example.com/"));
 		assertThat(rc.read("$.sponsor"), is(nullValue()));
+		//System.out.println("URIIII--------> " + entity.getHeaders() + " **** " + entity );
+		System.out.println("***************** FIN CREAR LINK");
 	}
 
 	@Test
 	public void testRedirection() throws Exception {
 		postLink("http://example.com/");
-		ResponseEntity<String> entity = new TestRestTemplate().getForEntity(
-				"http://localhost:" + this.port
-						+ "/f684a3c4", String.class);
+		ResponseEntity<String> entity = new TestRestTemplate().getForEntity("http://localhost:" + this.port
+				                                                           + "/f684a3c4", String.class);
 		assertThat(entity.getStatusCode(), is(HttpStatus.TEMPORARY_REDIRECT));
 		assertThat(entity.getHeaders().getLocation(), is(new URI("http://example.com/")));
 	}
@@ -79,8 +83,7 @@ public class SystemTests {
 	private ResponseEntity<String> postLink(String url) {
 		MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();
 		parts.add("url", url);
-		return new TestRestTemplate().postForEntity(
-				"http://localhost:" + this.port+"/link", parts, String.class);
+		return new TestRestTemplate().postForEntity("http://localhost:" + this.port+"/link", parts, String.class);
 	}
 
 

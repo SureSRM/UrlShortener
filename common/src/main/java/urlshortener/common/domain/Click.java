@@ -13,8 +13,7 @@ public class Click {
 	private String ip;
 	private String country;
 
-	public Click(Long id, String hash, Date created, String referrer,
-			String browser, String platform, String ip, String country) {
+	public Click(Long id, String hash, Date created, String referrer, String browser, String platform, String ip, String country) {
 		this.id = id;
 		this.hash = hash;
 		this.created = created;

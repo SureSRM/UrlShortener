@@ -32,8 +32,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 @RestController
 public class UrlShortenerController {
-	private static final Logger LOG = LoggerFactory
-			.getLogger(UrlShortenerController.class);
+	private static final Logger LOG = LoggerFactory.getLogger(UrlShortenerController.class);
 	@Autowired
 	protected ShortURLRepository shortURLRepository;
 
@@ -41,8 +40,7 @@ public class UrlShortenerController {
 	protected ClickRepository clickRepository;
 
 	@RequestMapping(value = "/{id:(?!link).*}", method = RequestMethod.GET)
-	public ResponseEntity<?> redirectTo(@PathVariable String id,
-			HttpServletRequest request) {
+	public ResponseEntity<?> redirectTo(@PathVariable String id, HttpServletRequest request) {
 		ShortURL l = shortURLRepository.findByKey(id);
 		if (l != null) {
 			createAndSaveClick(id, extractIP(request));
@@ -53,10 +51,9 @@ public class UrlShortenerController {
 	}
 
 	private void createAndSaveClick(String hash, String ip) {
-		Click cl = new Click(null, hash, new Date(System.currentTimeMillis()),
-				null, null, null, ip, null);
-		cl=clickRepository.save(cl);
-		LOG.info(cl!=null?"["+hash+"] saved with id ["+cl.getId()+"]":"["+hash+"] was not saved");
+		Click cl = new Click(null, hash, new Date(System.currentTimeMillis()), null, null, null, ip, null);
+		cl = clickRepository.save(cl);
+		LOG.info(cl != null?"[" + hash + "] saved with id [" + cl.getId() + "]":"[" + hash + "] was not saved");
 	}
 
 	private String extractIP(HttpServletRequest request) {
@@ -73,29 +70,39 @@ public class UrlShortenerController {
 	public ResponseEntity<ShortURL> shortener(@RequestParam("url") String url,
 											  @RequestParam(value = "sponsor", required = false) String sponsor,
 											  HttpServletRequest request) {
-		ShortURL su = createAndSaveIfValid(url, sponsor, UUID
-				.randomUUID().toString(), extractIP(request));
+
+		ShortURL su = createAndSaveIfValid(url, sponsor, UUID.randomUUID().toString(), extractIP(request));
 		if (su != null) {
 			HttpHeaders h = new HttpHeaders();
 			h.setLocation(su.getUri());
-			return new ResponseEntity<>(su, h, HttpStatus.CREATED);
+			// Comprueba la conexion sea 200
+			ResponseEntity<ShortURL> rEntity = new ResponseEntity<>(su, h, HttpStatus.OK);
+			// Comprueba si la ResponseEntity es valida
+			System.out.println("VALOR DE LO INETRMEDIO ====== " + rEntity.getStatusCode());
+			if(rEntity.getStatusCode() == HttpStatus.OK ){
+				// La conexion es 200, es valida la conexion
+				System.out.println("CONEXION VALIDA !!!!!!!!");
+				return new ResponseEntity<>(su, h, HttpStatus.CREATED);
+			} else {
+				System.out.println("conexion NO valida !!!!!!!!");
+				// La conexion no es valida
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			}
+			//return new ResponseEntity<>(su, h, HttpStatus.CREATED);
 		} else {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 	}
 
-	private ShortURL createAndSaveIfValid(String url, String sponsor,
-										  String owner, String ip) {
-		UrlValidator urlValidator = new UrlValidator(new String[] { "http",
-				"https" });
-		if (urlValidator.isValid(url)) {
-			String id = Hashing.murmur3_32()
-					.hashString(url, StandardCharsets.UTF_8).toString();
+	private ShortURL createAndSaveIfValid(String url, String sponsor, String owner, String ip) {
+		UrlValidator urlValidator = new UrlValidator(new String[] { "http", "https" });
+
+		boolean valid = urlValidator.isValid(url) ;
+		if (valid) {
+			String id = Hashing.murmur3_32().hashString(url, StandardCharsets.UTF_8).toString();
 			ShortURL su = new ShortURL(id, url,
-					linkTo(
-							methodOn(UrlShortenerController.class).redirectTo(
-									id, null)).toUri(), sponsor, new Date(
-							System.currentTimeMillis()), owner,
+					linkTo(methodOn(UrlShortenerController.class).redirectTo(id, null)).toUri(),
+					sponsor, new Date(System.currentTimeMillis()), owner,
 					HttpStatus.TEMPORARY_REDIRECT.value(), true, ip, null);
 			return shortURLRepository.save(su);
 		} else {
