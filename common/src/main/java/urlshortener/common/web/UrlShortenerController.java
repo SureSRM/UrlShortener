@@ -34,7 +34,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 @RestController
 public class UrlShortenerController {
 	private static final Logger LOG = LoggerFactory.getLogger(UrlShortenerController.class);
-	private static final RateLimiter throttler = RateLimiter.create(1.0);
+	private static final RateLimiter throttler = RateLimiter.create(1.0); // Para las limitaciones de acceso
 	@Autowired
 	protected ShortURLRepository shortURLRepository;
 
@@ -80,17 +80,15 @@ public class UrlShortenerController {
 			// Comprueba la conexion sea 200
 			ResponseEntity<ShortURL> rEntity = new ResponseEntity<>(su, h, HttpStatus.OK);
 			// Comprueba si la ResponseEntity es valida
-			System.out.println("VALOR DE LO INETRMEDIO ====== " + rEntity.getStatusCode());
 			if(rEntity.getStatusCode() == HttpStatus.OK ){
-				// La conexion es 200, es valida la conexion
 				System.out.println("CONEXION VALIDA !!!!!!!!");
+				// La conexion es 200, es valida la conexion
 				return new ResponseEntity<>(su, h, HttpStatus.CREATED);
 			} else {
 				System.out.println("conexion NO valida !!!!!!!!");
 				// La conexion no es valida
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			}
-			//return new ResponseEntity<>(su, h, HttpStatus.CREATED);
 		} else {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
