@@ -2,6 +2,7 @@ package urlshortener.common.web;
 
 import com.google.common.hash.Hashing;
 import com.google.common.util.concurrent.RateLimiter;
+import com.google.common.cache.CacheBuilder;
 
 import org.apache.commons.validator.routines.UrlValidator;
 import org.slf4j.Logger;
@@ -34,7 +35,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 @RestController
 public class UrlShortenerController {
 	private static final Logger LOG = LoggerFactory.getLogger(UrlShortenerController.class);
-	private static final RateLimiter throttler = RateLimiter.create(1.0); // Para las limitaciones de acceso
+	private static final RateLimiter throttler = RateLimiter.create(10.0); // Para las limitaciones de acceso
 	@Autowired
 	protected ShortURLRepository shortURLRepository;
 
@@ -74,23 +75,27 @@ public class UrlShortenerController {
 											  HttpServletRequest request) {
 
 		ShortURL su = createAndSaveIfValid(url, sponsor, UUID.randomUUID().toString(), extractIP(request));
-		if (su != null && throttler.tryAcquire()) {
-			HttpHeaders h = new HttpHeaders();
-			h.setLocation(su.getUri());
-			// Comprueba la conexion sea 200
-			ResponseEntity<ShortURL> rEntity = new ResponseEntity<>(su, h, HttpStatus.OK);
-			// Comprueba si la ResponseEntity es valida
-			if(rEntity.getStatusCode() == HttpStatus.OK ){
-				System.out.println("CONEXION VALIDA !!!!!!!!");
-				// La conexion es 200, es valida la conexion
-				return new ResponseEntity<>(su, h, HttpStatus.CREATED);
+		if (throttler.tryAcquire()){
+			if (su != null) {
+				HttpHeaders h = new HttpHeaders();
+				h.setLocation(su.getUri());
+				// Comprueba la conexion sea 200
+				ResponseEntity<ShortURL> rEntity = new ResponseEntity<>(su, h, HttpStatus.OK);
+				// Comprueba si la ResponseEntity es valida
+				if(rEntity.getStatusCode() == HttpStatus.OK ){
+					System.out.println("CONEXION VALIDA !!!!!!!!");
+					// La conexion es 200, es valida la conexion
+					return new ResponseEntity<>(su, h, HttpStatus.CREATED);
+				} else {
+					System.out.println("conexion NO valida !!!!!!!!");
+					// La conexion no es valida
+					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+				}
 			} else {
-				System.out.println("conexion NO valida !!!!!!!!");
-				// La conexion no es valida
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			}
-		} else {
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}else{
+			return new ResponseEntity<>(HttpStatus.TOO_MANY_REQUESTS);
 		}
 	}
 
