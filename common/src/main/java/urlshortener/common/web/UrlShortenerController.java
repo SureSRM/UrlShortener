@@ -2,7 +2,6 @@ package urlshortener.common.web;
 
 import com.google.common.hash.Hashing;
 import com.google.common.util.concurrent.RateLimiter;
-import com.google.common.cache.CacheBuilder;
 
 import org.apache.commons.validator.routines.UrlValidator;
 import org.slf4j.Logger;
@@ -23,6 +22,9 @@ import java.sql.Date;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.soap.*;
+import javax.xml.transform.*;
+import javax.xml.transform.stream.*;
 
 import urlshortener.common.domain.ShortURL;
 import urlshortener.common.repository.ClickRepository;
@@ -77,6 +79,18 @@ public class UrlShortenerController {
 		ShortURL su = createAndSaveIfValid(url, sponsor, UUID.randomUUID().toString(), extractIP(request));
 		if (throttler.tryAcquire()){
 			if (su != null) {
+				try{
+					SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
+					SOAPConnection soapConnection = soapConnectionFactory.createConnection();
+					String urlSoapMessage = "http://localhost:7777";
+					SOAPMessage soapResponse = soapConnection.call(createSOAPRequest(),urlSoapMessage);
+					printSOAPResponse(soapResponse);
+					soapConnection.close();
+				} catch(Exception e){
+					System.err.println("Error occurred while sending SOAP request to server");
+					e.printStackTrace();
+				}
+				
 				HttpHeaders h = new HttpHeaders();
 				h.setLocation(su.getUri());
 				// Comprueba la conexion sea 200
@@ -97,6 +111,34 @@ public class UrlShortenerController {
 		}else{
 			return new ResponseEntity<>(HttpStatus.TOO_MANY_REQUESTS);
 		}
+	}
+	
+	private static SOAPMessage createSOAPRequest() throws Exception {
+		MessageFactory messageFactory = MessageFactory.newInstance();
+		SOAPMessage soapMessage = messageFactory.createMessage();
+		SOAPPart soapPart = soapMessage.getSOAPPart();
+		
+		String serverURI = "http://localhost";
+		SOAPEnvelope envelope = soapPart.getEnvelope();
+		envelope.addNamespaceDeclaration("example", serverURI);
+		
+		SOAPBody soapBody = envelope.getBody();
+		SOAPElement soapBodyElem = soapBody.addChildElement("ThrottleIP");
+		soapBodyElem.addTextNode(IPServerRequest);
+		MimeHeaders headers = soapMessage.getMimeHeaders();
+		headers.addHeader("SOAPAction", serverURI + "ThrottleIP");
+		
+		soapMessage.saveChanges();
+		
+		return soapMessage;
+	}
+	
+	private static void printSOAPResponse(SOAPMessage soapResponse) throws Exception{
+		TransformerFactory transformerFactory = TransformerFactory.newInstance();
+		Transformer transformer = transformerFactory.newTransformer();
+		Source sourceContent = soapResponse.getSOAPPart().getContent();
+		StreamResult result = new StreamResult(System.out);
+		transformer.transform(sourceContent, result);
 	}
 
 	private ShortURL createAndSaveIfValid(String url, String sponsor, String owner, String ip) {
