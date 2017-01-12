@@ -16,15 +16,17 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.xml.soap.*;
-import javax.xml.transform.*;
-import javax.xml.transform.stream.*;
 
 import urlshortener.common.domain.ShortURL;
 import urlshortener.common.repository.ClickRepository;
@@ -44,7 +46,7 @@ public class UrlShortenerController {
 	@Autowired
 	protected ClickRepository clickRepository;
 
-	@RequestMapping(value = "/{id:(?!link).*}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{id:(?!link|config).*}", method = RequestMethod.GET)
 	public ResponseEntity<?> redirectTo(@PathVariable String id, HttpServletRequest request) {
 		ShortURL l = shortURLRepository.findByKey(id);
 		if (l != null) {
@@ -77,68 +79,50 @@ public class UrlShortenerController {
 											  HttpServletRequest request) {
 
 		ShortURL su = createAndSaveIfValid(url, sponsor, UUID.randomUUID().toString(), extractIP(request));
-		if (throttler.tryAcquire()){
-			if (su != null) {
-				try{
-					SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
-					SOAPConnection soapConnection = soapConnectionFactory.createConnection();
-					String urlSoapMessage = "http://localhost:7777";
-					SOAPMessage soapResponse = soapConnection.call(createSOAPRequest(),urlSoapMessage);
-					printSOAPResponse(soapResponse);
-					soapConnection.close();
-				} catch(Exception e){
-					System.err.println("Error occurred while sending SOAP request to server");
-					e.printStackTrace();
-				}
-				
+
+		if(throttler.tryAcquire()){
+
+			if (su != null ) {
 				HttpHeaders h = new HttpHeaders();
 				h.setLocation(su.getUri());
 				// Comprueba la conexion sea 200
-				ResponseEntity<ShortURL> rEntity = new ResponseEntity<>(su, h, HttpStatus.OK);
+
+				HttpURLConnection connection = null;
+				int statusCode = 500;
+				try {
+					URL urlObject = new URL(url);
+					connection = (HttpURLConnection) urlObject.openConnection();
+					connection.setRequestMethod("GET");
+					connection.connect();
+
+					statusCode = connection.getResponseCode();
+				} catch (IOException e) {
+					return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+
 				// Comprueba si la ResponseEntity es valida
-				if(rEntity.getStatusCode() == HttpStatus.OK ){
-					System.out.println("CONEXION VALIDA !!!!!!!!");
+				if (statusCode == HttpStatus.OK.value()) {
 					// La conexion es 200, es valida la conexion
 					return new ResponseEntity<>(su, h, HttpStatus.CREATED);
 				} else {
-					System.out.println("conexion NO valida !!!!!!!!");
 					// La conexion no es valida
 					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 				}
+				//return new ResponseEntity<>(su, h, HttpStatus.CREATED);
 			} else {
+
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			}
-		}else{
+		} else {
 			return new ResponseEntity<>(HttpStatus.TOO_MANY_REQUESTS);
 		}
+
 	}
-	
-	private static SOAPMessage createSOAPRequest() throws Exception {
-		MessageFactory messageFactory = MessageFactory.newInstance();
-		SOAPMessage soapMessage = messageFactory.createMessage();
-		SOAPPart soapPart = soapMessage.getSOAPPart();
-		
-		String serverURI = "http://localhost";
-		SOAPEnvelope envelope = soapPart.getEnvelope();
-		envelope.addNamespaceDeclaration("example", serverURI);
-		
-		SOAPBody soapBody = envelope.getBody();
-		SOAPElement soapBodyElem = soapBody.addChildElement("ThrottleIP");
-		soapBodyElem.addTextNode(IPServerRequest);
-		MimeHeaders headers = soapMessage.getMimeHeaders();
-		headers.addHeader("SOAPAction", serverURI + "ThrottleIP");
-		
-		soapMessage.saveChanges();
-		
-		return soapMessage;
-	}
-	
-	private static void printSOAPResponse(SOAPMessage soapResponse) throws Exception{
-		TransformerFactory transformerFactory = TransformerFactory.newInstance();
-		Transformer transformer = transformerFactory.newTransformer();
-		Source sourceContent = soapResponse.getSOAPPart().getContent();
-		StreamResult result = new StreamResult(System.out);
-		transformer.transform(sourceContent, result);
+
+	@RequestMapping(value = "/config", method = RequestMethod.PUT)
+	public ResponseEntity<Boolean> configMetricsEndpoints(@RequestParam("metrics") Map<String, Boolean> newCOnfig){
+
+		return new ResponseEntity<>(HttpStatus.CREATED);
 	}
 
 	private ShortURL createAndSaveIfValid(String url, String sponsor, String owner, String ip) {

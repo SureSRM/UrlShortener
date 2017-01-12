@@ -25,7 +25,7 @@ $(document).ready(
 
                 $("#countshorted").append( data["counter.status.201.link"] );
                 $("#countaccess").append( data["counter.status.304.star-star"] );
-                $("#avacessperurl").append( data["counter.status.201.link"] / data["counter.status.304.star-star"] );
+                $("#avacessperurl").append( data["counter.status.304.star-star"] / data["counter.status.201.link"]  );
                 $("#timelastredirection").append( data["gauge.response.star-star"] );
             });
 
