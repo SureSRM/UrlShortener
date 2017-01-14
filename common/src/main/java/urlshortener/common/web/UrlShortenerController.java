@@ -39,7 +39,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 @RestController
 public class UrlShortenerController {
 	private static final Logger LOG = LoggerFactory.getLogger(UrlShortenerController.class);
-	private static final RateLimiter throttler = RateLimiter.create(10.0); // Para las limitaciones de acceso
+	private static final RateLimiter throttler = RateLimiter.create(10.0);
 	@Autowired
 	protected ShortURLRepository shortURLRepository;
 
@@ -77,46 +77,54 @@ public class UrlShortenerController {
 	public ResponseEntity<ShortURL> shortener(@RequestParam("url") String url,
 											  @RequestParam(value = "sponsor", required = false) String sponsor,
 											  HttpServletRequest request) {
-
-		ShortURL su = createAndSaveIfValid(url, sponsor, UUID.randomUUID().toString(), extractIP(request));
-
+		UrlValidator urlValidator = new UrlValidator(new String[] { "http", "https" });
+		boolean valid = urlValidator.isValid(url) ;
 		if(throttler.tryAcquire()){
-
-			if (su != null ) {
-				HttpHeaders h = new HttpHeaders();
-				h.setLocation(su.getUri());
-				// Comprueba la conexion sea 200
-
-				HttpURLConnection connection = null;
-				int statusCode = 500;
-				try {
-					URL urlObject = new URL(url);
-					connection = (HttpURLConnection) urlObject.openConnection();
-					connection.setRequestMethod("GET");
-					connection.connect();
-
-					statusCode = connection.getResponseCode();
-				} catch (IOException e) {
-					return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			if (valid) {
+				String id = Hashing.murmur3_32().hashString(url, StandardCharsets.UTF_8).toString();
+				ShortURL shortUrl = shortURLRepository.findByKey(id);
+				if (shortUrl!=null){
+					if (shortUrl.getSafe()){
+						HttpHeaders h = new HttpHeaders();
+						/////shortURL.getUri() es nula.
+						h.setLocation(shortUrl.getUri());
+						return new ResponseEntity<>(shortUrl, h, HttpStatus.OK);
+					}else{
+						return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+					}
+				}else{
+					return checkURL(url, sponsor, request, true);
 				}
-
-				// Comprueba si la ResponseEntity es valida
-				if (statusCode == HttpStatus.OK.value()) {
-					// La conexion es 200, es valida la conexion
-					return new ResponseEntity<>(su, h, HttpStatus.CREATED);
-				} else {
-					// La conexion no es valida
-					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-				}
-				//return new ResponseEntity<>(su, h, HttpStatus.CREATED);
 			} else {
-
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			}
-		} else {
-			return new ResponseEntity<>(HttpStatus.TOO_MANY_REQUESTS);
 		}
-
+		return new ResponseEntity<>(HttpStatus.TOO_MANY_REQUESTS);
+	}
+	
+	public ResponseEntity checkURL(String url, String sponsor, HttpServletRequest request, boolean firstTime){
+		HttpURLConnection connection = null;
+		int statusCode = 500;
+		try {
+			URL urlObject = new URL(url);
+			connection = (HttpURLConnection) urlObject.openConnection();
+			connection.setRequestMethod("GET");
+			connection.connect();
+			statusCode = connection.getResponseCode();
+		} catch (IOException e) {
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		if (statusCode == HttpStatus.OK.value()) {
+			if (firstTime){
+				ShortURL su = createAndSaveIfValid(url, sponsor, UUID.randomUUID().toString(), extractIP(request));
+				HttpHeaders h = new HttpHeaders();
+				h.setLocation(su.getUri());
+				return new ResponseEntity<>(su, h, HttpStatus.CREATED);
+			}else{
+				return new ResponseEntity<>(HttpStatus.OK);
+			}
+		}
+		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 	}
 
 	@RequestMapping(value = "/config", method = RequestMethod.PUT)

@@ -72,5 +72,9 @@ public class ShortURL {
 	public String getCountry() {
 		return country;
 	}
+	
+	public void setSafe(Boolean safe){
+		this.safe = safe;
+	}
 
 }
