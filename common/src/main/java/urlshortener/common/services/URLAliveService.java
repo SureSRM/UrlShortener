@@ -1,4 +1,4 @@
-package urlshortener.common.aliveservices;
+package urlshortener.common.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;

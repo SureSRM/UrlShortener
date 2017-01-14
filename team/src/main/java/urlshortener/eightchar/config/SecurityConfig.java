@@ -1,4 +1,4 @@
-package urlshortener.common.config;
+package urlshortener.eightchar.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -17,15 +17,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .authorizeRequests()
                 .antMatchers("/**","/").permitAll()
-                .antMatchers("/config").hasRole("USER")
+                .antMatchers("/config").hasRole("ADMIN")
                 .and()
                 .formLogin()
-                .loginPage("/login").failureUrl("/login-error");
+                .loginPage("/admin").failureUrl("/login-error")
+                .and().csrf().disable();
     }
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication().withUser("user").password("password").roles("USER");
+        auth.inMemoryAuthentication().withUser("admin").password("password").roles("ADMIN");
     }
 }
 

@@ -2,7 +2,7 @@ package urlshortener.common.config;
 
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import urlshortener.common.infocontributors.RankInfoContributor;
+import urlshortener.common.services.RankInfoContributor;
 
 @Configuration
 @ComponentScan(basePackageClasses = { urlshortener.common.repository.ClickRepository.class,

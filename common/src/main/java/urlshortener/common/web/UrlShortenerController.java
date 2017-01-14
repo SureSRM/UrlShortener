@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -32,6 +31,7 @@ import urlshortener.common.domain.ShortURL;
 import urlshortener.common.repository.ClickRepository;
 import urlshortener.common.repository.ShortURLRepository;
 import urlshortener.common.domain.Click;
+import urlshortener.common.services.MetricsViewConfig;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
@@ -45,6 +45,9 @@ public class UrlShortenerController {
 
 	@Autowired
 	protected ClickRepository clickRepository;
+
+	@Autowired
+	protected MetricsViewConfig metrics;
 
 	@RequestMapping(value = "/{id:(?!link|config).*}", method = RequestMethod.GET)
 	public ResponseEntity<?> redirectTo(@PathVariable String id, HttpServletRequest request) {
@@ -128,9 +131,13 @@ public class UrlShortenerController {
 	}
 
 	@RequestMapping(value = "/config", method = RequestMethod.PUT)
-	public ResponseEntity<Boolean> configMetricsEndpoints(@RequestParam("metrics") Map<String, Boolean> newCOnfig){
+	public void configMetricsEndpoints(@RequestParam("metric") String metric){
+		metrics.switchFlag(metric);
+	}
 
-		return new ResponseEntity<>(HttpStatus.CREATED);
+	@RequestMapping(value = "/metrics", method = RequestMethod.GET)
+	public ResponseEntity<Map<String, String>> configMetricsEndpoints(){
+		return new ResponseEntity<>(metrics.getMetrics(), HttpStatus.ACCEPTED);
 	}
 
 	private ShortURL createAndSaveIfValid(String url, String sponsor, String owner, String ip) {

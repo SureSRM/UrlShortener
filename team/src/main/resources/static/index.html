@@ -49,24 +49,38 @@
 				<span class="close">x</span>
 				<div id="SystemInfo">
 					<h3>System info</h3>
-					<p id="uptime">System uptime: </p>
-					<p id="mem">System total memory: </p>
-					<p id="memused">System used memory: </p>
-					<p id="avload">Average load: </p>
+					System uptime: <p id="uptime"> </p>
+					System total memory: <p id="mem"> </p>
+					System used memory: <p id="memused"></p>
+					Average load: <p id="avload"></p>
 				</div>
 				<div id="URLInfo">
 					<h3>URL info</h3>
-					<p id="countshorted">Shorted URLs: </p>
-					<p id="countaccess">Redirected URLs:</p>
-					<p id="avacessperurl">Average redirections per URL: </p>
-					<p id="timelastredirection">Response time to the last redirection: </p>
+					Shorted URLs: <p id="countshorted"></p>
+					Redirected URLs:<p id="countaccess"></p>
+					Average redirections per URL: <p id="avacessperurl"></p>
+					Response time to the last redirection: <p id="timelastredirection"></p>
 				</div>
 				<div id="UserInfo">
 					<h3>User info</h3>
 					<p id="activeusers">Active users: 0</p>
 				</div>
-			</div>
+				<div id="ConfigMetrics">
+					<h3>ConfigMetrics</h3>
+					<form action="/config" method="post">
+						<input type="radio" name="metric" value="uptime" checked>Uptime</input>
+						<input type="radio" name="metric" value="totalMemory" checked>TotalMemory</input>
+						<input type="radio" name="metric" value="usedMemory" checked>UsedMemory</input>
+						<input type="radio" name="metric" value="averageLoad" checked>AvgLoad</input>
 
+						<input type="radio" name="metric" value="shortedURLs" checked>ShortedURLs</input>
+						<input type="radio" name="metric" value="redirectedURLs" checked>RedirectedURLs</input>
+						<input type="radio" name="metric" value="average_RedirectionsPerURL" checked>AvgRedirections</input>
+						<input type="radio" name="metric" value="responseTimeToTheLastRedirection" checked>Response time</input>
+						<input type="submit" value="Submit"/>
+					</form>
+				</div>
+			</div>
 		</div>
 		<div class="row">
 			<div class="col-lg-12 text-center">

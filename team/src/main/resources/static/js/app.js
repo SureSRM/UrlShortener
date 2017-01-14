@@ -1,6 +1,38 @@
+function updateMetrics() {
+    $.ajax('http://localhost:9090/info', 'GET').done(
+        function(data) {
+            console.log(data);
+            for (var i = 0; i < data.RankList.length; i++) {
+
+                $("#rank").append(
+                    "<div class='rank-position'> <p> Position " + i + ": <a href='http://localhost:8080/"
+                    + data.RankList[i].hashed
+                    + "'>"
+                    + data.RankList[i].hashed
+                    + "</a> with "
+                    + data.RankList[i].score
+                    + " hits.</p></div>"
+                );
+            }
+    });
+    $.ajax('http://localhost:8080/metrics', 'GET').done(
+        function(data) {
+        console.log(data);
+        $("#uptime").html( data["uptime"] );
+        $("#mem").html( data["totalMemory"] );
+        $("#memused").html( data["usedMemory"] );
+        $("#avload").html( data["averageLoad"] );
+
+        $("#countshorted").html( data["shortedURLs"] );
+        $("#countaccess").html( data["redirectedURLs"] );
+        $("#avacessperurl").html( data["average_RedirectionsPerURL"] );
+        $("#timelastredirection").html( data["responseTimeToTheLastRedirection"] );
+    });
+}
+
 $(document).ready(
     function() {
-        $.ajax('http://localhost:8080/info', 'GET').done(
+        $.ajax('http://localhost:9090/info', 'GET').done(
             function(data) {
                 console.log(data);
                 for (var i = 0; i < data.RankList.length; i++) {
@@ -15,19 +47,21 @@ $(document).ready(
                         + " hits.</p></div>"
                     );
                 }
-            });$.ajax('http://localhost:8080/metrics', 'GET').done(
-            function(data) {
-                console.log(data);
-                $("#uptime").append( data["uptime"] );
-                $("#mem").append( data["mem"] );
-                $("#memused").append( data["mem.free"] );
-                $("#avload").append( data["systemload.average"] );
+        });
+        $.ajax('http://localhost:8080/metrics', 'GET').done(
+        function(data) {
+            console.log(data);
+            $("#uptime").html( data["uptime"] );
+            $("#mem").html( data["totalMemory"] );
+            $("#memused").html( data["usedMemory"] );
+            $("#avload").html( data["averageLoad"] );
 
-                $("#countshorted").append( data["counter.status.201.link"] );
-                $("#countaccess").append( data["counter.status.304.star-star"] );
-                $("#avacessperurl").append( data["counter.status.304.star-star"] / data["counter.status.201.link"]  );
-                $("#timelastredirection").append( data["gauge.response.star-star"] );
-            });
+            $("#countshorted").html( data["shortedURLs"] );
+            $("#countaccess").html( data["redirectedURLs"] );
+            $("#avacessperurl").html( data["average_RedirectionsPerURL"] );
+            $("#timelastredirection").html( data["responseTimeToTheLastRedirection"] );
+            setInterval(updateMetrics,3000);
+        });
 
         // Get the modal
         var modal = document.getElementById('infoModal');
@@ -69,5 +103,5 @@ $(document).ready(
                             "<div class='alert alert-danger lead'>ERROR</div>");
                     }
                 });
-            });
+        });
     });
