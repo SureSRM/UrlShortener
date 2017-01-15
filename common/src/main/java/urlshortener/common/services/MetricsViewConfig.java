@@ -81,7 +81,7 @@ public class MetricsViewConfig {
             }
 
             try{ //201 may not be initialized
-                metrics.put("redirectedURLs", Integer.toString( (int) readedMetrics.get("counter.status.304.star-star")));
+                metrics.put("redirectedURLs", Integer.toString( (int) readedMetrics.get("counter.status.307.id:(?!link|index|config|login|admin).-star-")));
             }catch(JSONException e){
                 metrics.put("redirectedURLs", Integer.toString(-1));
             }

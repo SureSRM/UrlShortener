@@ -2,6 +2,7 @@ function updateMetrics() {
     $.ajax('http://localhost:9090/info', 'GET').done(
         function(data) {
             console.log(data);
+            $("#rank").html("");
             for (var i = 0; i < data.RankList.length; i++) {
 
                 $("#rank").append(
@@ -35,6 +36,7 @@ $(document).ready(
         $.ajax('http://localhost:9090/info', 'GET').done(
             function(data) {
                 console.log(data);
+                $("#rank").html("");
                 for (var i = 0; i < data.RankList.length; i++) {
 
                     $("#rank").append(

@@ -77,4 +77,7 @@ public class ShortURL {
 		this.safe = safe;
 	}
 
+	public void setCreated(Date created) {
+		this.created = created;
+	}
 }

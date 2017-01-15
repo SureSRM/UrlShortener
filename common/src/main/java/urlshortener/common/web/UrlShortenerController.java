@@ -54,7 +54,11 @@ public class UrlShortenerController {
 		ShortURL l = shortURLRepository.findByKey(id);
 		if (l != null) {
 			createAndSaveClick(id, extractIP(request));
-			return createSuccessfulRedirectToResponse(l);
+			if(l.getSafe()) {
+				return createSuccessfulRedirectToResponse(l);
+			} else {
+				return createRedirectToNotFound(l);
+			}
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
@@ -76,58 +80,48 @@ public class UrlShortenerController {
 		return new ResponseEntity<>(h, HttpStatus.valueOf(l.getMode()));
 	}
 
+	private ResponseEntity<?> createRedirectToNotFound(ShortURL l) {
+		String notfoundpage=	"<html>\n" +
+								"<head></head>\n" +
+								"<body>\n" +
+								"<h1>Page not found since: " + l.getCreated() +
+								"</body>\n" +
+								"</html>";
+		return new ResponseEntity<>(notfoundpage, HttpStatus.NOT_FOUND);
+	}
+
 	@RequestMapping(value = "/link", method = RequestMethod.POST)
 	public ResponseEntity<ShortURL> shortener(@RequestParam("url") String url,
 											  @RequestParam(value = "sponsor", required = false) String sponsor,
 											  HttpServletRequest request) {
-		UrlValidator urlValidator = new UrlValidator(new String[] { "http", "https" });
-		boolean valid = urlValidator.isValid(url) ;
 		if(throttler.tryAcquire()){
-			if (valid) {
-				String id = Hashing.murmur3_32().hashString(url, StandardCharsets.UTF_8).toString();
-				ShortURL shortUrl = shortURLRepository.findByKey(id);
-				if (shortUrl!=null){
-					if (shortUrl.getSafe()){
-						HttpHeaders h = new HttpHeaders();
-						/////shortURL.getUri() es nula.
-						h.setLocation(shortUrl.getUri());
-						return new ResponseEntity<>(shortUrl, h, HttpStatus.OK);
-					}else{
-						return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-					}
-				}else{
-					return checkURL(url, sponsor, request, true);
-				}
+			ShortURL su = createAndSaveIfValid(url, sponsor, UUID
+					.randomUUID().toString(), extractIP(request));
+			if (su != null) {
+				HttpHeaders h = new HttpHeaders();
+				h.setLocation(su.getUri());
+				return new ResponseEntity<>(su, h, HttpStatus.CREATED);
 			} else {
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			}
 		}
 		return new ResponseEntity<>(HttpStatus.TOO_MANY_REQUESTS);
 	}
-	
-	public ResponseEntity checkURL(String url, String sponsor, HttpServletRequest request, boolean firstTime){
-		HttpURLConnection connection = null;
-		int statusCode = 500;
-		try {
-			URL urlObject = new URL(url);
-			connection = (HttpURLConnection) urlObject.openConnection();
-			connection.setRequestMethod("GET");
-			connection.connect();
-			statusCode = connection.getResponseCode();
-		} catch (IOException e) {
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+
+	private ShortURL createAndSaveIfValid(String url, String sponsor, String owner, String ip) {
+		UrlValidator urlValidator = new UrlValidator(new String[] { "http", "https" });
+
+		boolean valid = urlValidator.isValid(url) ;
+		if (valid) {
+			String id = Hashing.murmur3_32().hashString(url, StandardCharsets.UTF_8).toString();
+			ShortURL su = new ShortURL(id, url,
+					linkTo(methodOn(UrlShortenerController.class).redirectTo(id, null)).toUri(),
+					sponsor, new Date(System.currentTimeMillis()), owner,
+					HttpStatus.TEMPORARY_REDIRECT.value(), false, ip, null);
+			return shortURLRepository.save(su);
+		} else {
+			return null;
 		}
-		if (statusCode == HttpStatus.OK.value()) {
-			if (firstTime){
-				ShortURL su = createAndSaveIfValid(url, sponsor, UUID.randomUUID().toString(), extractIP(request));
-				HttpHeaders h = new HttpHeaders();
-				h.setLocation(su.getUri());
-				return new ResponseEntity<>(su, h, HttpStatus.CREATED);
-			}else{
-				return new ResponseEntity<>(HttpStatus.OK);
-			}
-		}
-		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 	}
 
 	@RequestMapping(value = "/config", method = RequestMethod.PUT)
@@ -140,19 +134,5 @@ public class UrlShortenerController {
 		return new ResponseEntity<>(metrics.getMetrics(), HttpStatus.ACCEPTED);
 	}
 
-	private ShortURL createAndSaveIfValid(String url, String sponsor, String owner, String ip) {
-		UrlValidator urlValidator = new UrlValidator(new String[] { "http", "https" });
 
-		boolean valid = urlValidator.isValid(url) ;
-		if (valid) {
-			String id = Hashing.murmur3_32().hashString(url, StandardCharsets.UTF_8).toString();
-			ShortURL su = new ShortURL(id, url,
-					linkTo(methodOn(UrlShortenerController.class).redirectTo(id, null)).toUri(),
-					sponsor, new Date(System.currentTimeMillis()), owner,
-					HttpStatus.TEMPORARY_REDIRECT.value(), true, ip, null);
-			return shortURLRepository.save(su);
-		} else {
-			return null;
-		}
-	}
 }
